@@ -26,6 +26,7 @@ const typeList = [
 // 自个改吧
 const curTypeMap = typeList.map(item => item == '丝袜美腿')
 const page = Math.floor(Math.random() * curTypeMap.maxPage)
+const id = curTypeMap.id
 module.exports = async s => {
     start()
     function start() {
@@ -39,7 +40,7 @@ module.exports = async s => {
         })
     }
     function getList() {
-        let url = `${domain}index.php/art/type/id/26/page/${page}.html`
+        let url = `${domain}index.php/art/type/id/${id}/page/${page}.html`
         return new Promise((resolve, reject) => {
             comFn.requestPromise(url)
                 .then(resp => {
