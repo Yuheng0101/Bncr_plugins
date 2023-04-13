@@ -24,8 +24,10 @@ module.exports = async s => {
         { title: '唯美写真', id: 31, maxPage: 29 },
         { title: '女优情报', id: 32, maxPage: 31 },
     ]
-    // 自个改吧
+    // 自定义类型
     const curTypeMap = typeList.find(item => item.title == '丝袜美腿')
+    // 自定义分页数量
+    const pageNum = 5
     const page = Math.floor(Math.random() * curTypeMap.maxPage)
     const id = curTypeMap.id
     console.log(`当前类型：${curTypeMap.title}，当前页码：${page}`)
@@ -33,9 +35,34 @@ module.exports = async s => {
     function start() {
         getList().then((data) => {
             const { path } = data
-            getImg(path).then((imgList) => {
+            getImg(path).then(async (imgList) => {
                 const { title } = data;
                 s.reply(title)
+                let newList = arr2Dyadic(imgList, pageNum)
+                let isCancel = false;
+                for (let i = 0; i < newList.length; i++) {
+                    if (isCancel) {
+                        s.reply('已取消')
+                        return;
+                    }
+                    if (i == 0) { await newList[i].map(item => sendImage(item)) }
+                    else if (i == newList.length - 1) {
+                        await newList[i].map(item => sendImage(item))
+                        s.reply(`已加载全部`)
+                        return;
+                    } if (i > 0 && !isCancel) {
+                        s.reply("是否继续返回剩余图片,y/Y继续，其他取消")
+                        let input = await s.waitInput(() => { }, 30)
+                        if (!input) return s.reply("操作超时或取消，已退出。");
+                        let content = input.getMsg();
+                        if (content.toLowerCase() !== 'y') {
+                            isCancel = true
+                            return s.reply('已取消')
+                        } else {
+                            await newList[i].map(item => sendImage(item))
+                        }
+                    }
+                }
                 imgList.map(imgUrl => s.reply({ type: 'image', path: imgUrl }))
             }).catch(err => s.reply(err))
         }).catch(err => s.reply(err))
@@ -83,6 +110,22 @@ module.exports = async s => {
                 })
         })
     }
-
+    function sendImage(url) {
+        s.reply({ type: 'image', path: url })
+    }
+    /**
+     * 数组升维
+     * @param {*} arr 原数组
+     * @param {*} chunkSize 每个数组的长度
+     * @returns 二位数组
+     */
+    function arr2Dyadic(arr, chunkSize) {
+        const newArr = [];
+        for (let i = 0; i < arr.length; i += chunkSize) {
+            const chunk = arr.slice(i, i + chunkSize);
+            newArr.push(chunk);
+        }
+        return newArr;
+    }
 };
 
