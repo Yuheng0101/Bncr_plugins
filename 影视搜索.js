@@ -27,7 +27,7 @@ module.exports = async s => {
                 await list.map(item => replyText += `${item.title}：${item.href}\n`)
                 s.reply(replyText)
             }).catch(err => s.reply(err))
-        })
+        }).catch(err => s.reply(err))
     }
     function getList(url) {
         return new Promise((resolve, reject) => {

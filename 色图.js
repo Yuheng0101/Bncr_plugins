@@ -1,6 +1,6 @@
 /**
  * @author Yuheng | onz3v
- * @name 115色图
+ * @name 155色图
  * @origin onz3v
  * @version 1.0.0
  * @description 一次不使用cheerio对学习资料的爬虫尝试 18+ 请勿滥用
@@ -11,36 +11,37 @@
  * @disable false
  */
 
-const comFn = require('./lib/functions')
-const domain = `http://155zy.com/`
-const typeList = [
-    { title: '街拍偷拍', id: 25, maxPage: 29 },
-    { title: '丝袜美腿', id: 26, maxPage: 27 },
-    { title: '欧美风情', id: 27, maxPage: 26 },
-    { title: '网友自拍', id: 28, maxPage: 31 },
-    { title: '卡通漫画', id: 29, maxPage: 21 },
-    { title: '露出激情', id: 30, maxPage: 32 },
-    { title: '唯美写真', id: 31, maxPage: 29 },
-    { title: '女优情报', id: 32, maxPage: 31 },
-]
-// 自个改吧
-const curTypeMap = typeList.map(item => item == '丝袜美腿')
-const page = Math.floor(Math.random() * curTypeMap.maxPage)
-const id = curTypeMap.id
 module.exports = async s => {
+    const comFn = require('./lib/functions')
+    const domain = `http://155zy.com`
+    const typeList = [
+        { title: '街拍偷拍', id: 25, maxPage: 29 },
+        { title: '丝袜美腿', id: 26, maxPage: 27 },
+        { title: '欧美风情', id: 27, maxPage: 26 },
+        { title: '网友自拍', id: 28, maxPage: 31 },
+        { title: '卡通漫画', id: 29, maxPage: 21 },
+        { title: '露出激情', id: 30, maxPage: 32 },
+        { title: '唯美写真', id: 31, maxPage: 29 },
+        { title: '女优情报', id: 32, maxPage: 31 },
+    ]
+    // 自个改吧
+    const curTypeMap = typeList.find(item => item.title == '丝袜美腿')
+    const page = Math.floor(Math.random() * curTypeMap.maxPage)
+    const id = curTypeMap.id
+    console.log(`当前类型：${curTypeMap.title}，当前页码：${page}`)
     start()
     function start() {
         getList().then((data) => {
-            getImg(data.path).then((imgList) => {
+            const { path } = data
+            getImg(path).then((imgList) => {
                 const { title } = data;
                 s.reply(title)
                 imgList.map(imgUrl => s.reply({ type: 'image', path: imgUrl }))
-
-            })
-        })
+            }).catch(err => s.reply(err))
+        }).catch(err => s.reply(err))
     }
     function getList() {
-        let url = `${domain}index.php/art/type/id/${id}/page/${page}.html`
+        let url = `${domain}/index.php/art/type/id/${id}/page/${page}.html`
         return new Promise((resolve, reject) => {
             comFn.requestPromise(url)
                 .then(resp => {
@@ -55,8 +56,9 @@ module.exports = async s => {
                         let aTag = item.match(/<a(\S*?)<\/a>/g)[0]
                         aTag = aTag.replace(/<img(\S*?)>/g, '')
                         const title = aTag.match(/>(\S*?)</)[1]
+                        console.log(`当前爬取的标题：${title}`)
                         const path = item.match(/href=\"(\S*?)\"/)[1]
-                        resolve({ title, path, imgList: [] })
+                        resolve({ title, path })
                     }
                     // })
                 })
@@ -68,7 +70,7 @@ module.exports = async s => {
 
     function getImg(path) {
         return new Promise((resolve, reject) => {
-            comFn.requestPromise(`${domain}/${path}`)
+            comFn.requestPromise(`${domain}${path}`)
                 .then(resp => {
                     const _html = resp.replace(/\n|\s|\r/g, '')
                     const _body = _html.match(/<divclass=\"f14\"id=\"read_tpc\">(\S*?)<\/div>/g)[0]

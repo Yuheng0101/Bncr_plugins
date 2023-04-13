@@ -10,6 +10,7 @@
  * @priority 0
  * @disable false
  */
+sysMethod.testModule(['cheerio'], { install: true });
 const comFn = require('./lib/functions')
 const cheerio = require('cheerio')
 const page = Math.floor(Math.random() * 999)
@@ -27,8 +28,8 @@ module.exports = async s => {
                 const subList = data.filter(Boolean)
                 s.reply(`${title}: ${data.length}张`)
                 subList.map(imgUrl => s.reply({ type: 'image', path: imgUrl }))
-            })
-        })
+            }).catch(err => s.reply(err))
+        }).catch(err => s.reply(err))
     }
 
 
