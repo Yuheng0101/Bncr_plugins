@@ -3,7 +3,7 @@
  * @name bt磁力天堂
  * @origin onz3v
  * @version 1.0.0
- * @description  磁力搜索 个人感觉体验一般，尝鲜，凑合用用吧
+ * @description  磁力搜索 回显内容较多建议在tg使用
  * @rule ^(bt|磁力)([\s\S]+)$
  * @admin false
  * @public false
@@ -24,13 +24,15 @@ module.exports = async s => {
     start();
     function start() {
         search().then(async (data) => {
+            let replyId = void 0;
             const { totalPage, list } = data
+            let loadingId = await s.reply(`正在获取第${page}页数据，请稍等...`)
             let replyText = `你要搜索的内容是 ${kw}\n共找到${totalPage}页数据，当前第${page}页\n`
             await list.map((item) => {
                 replyText += `${item.title}\t类型：${item.detail.type}\t大小：${item.detail.size}\t热度：${item.detail.heat}\n磁链地址：${item.detail.magnet}\n\n`
             })
             replyText += `输入n/N下一页，输入p/P上一页，输入q/Q退出\n`
-            s.reply(replyText)
+            replyId = await s.reply(replyText)
             let pgMsg = await s.waitInput(async (sender) => {
                 let content = s.getMsg().toLowerCase();
                 if (content == 'q') { }
@@ -42,19 +44,39 @@ module.exports = async s => {
                     if (num < 0 || num > totalPage) return await sender.reply('最大只有' + totalPage + '页，你输了个啥啊？重输重输')
                 }
 
-            }, 60);
-            if (pgMsg.getMsg().toLowerCase() === 'q') return s.reply('已退出');
+            }, 120);
+
+            if (pgMsg.getMsg().toLowerCase() === 'q') {
+                return s.reply('退出成功')
+            }
             if (pgMsg.getMsg().toLowerCase() === 'n') {
-                if (page === totalPage) return s.reply('已经是最后一页了')
-                page++
-                start()
+                if (page === totalPage) {
+                    let tips = s.reply('已经是最后一页了')
+                    await s.delMsg(tips, { wait: 2 })
+                } else {
+                    page++
+                }
+                clearMsg();
+                start();
             }
             if (pgMsg.getMsg().toLowerCase() === 'p') {
-                if (page === 1) return s.reply('已经是第一页了')
-                page--
-                start()
+                if (page === 1) {
+                    let tips = s.reply('已经是第一页了')
+                    await s.delMsg(tips, { wait: 2 })
+                } else {
+                    page--
+                }
+                clearMsg();
+                start();
             }
-            if (pgMsg === null) return s.reply('超时退出');
+            if (pgMsg === null) {
+                return s.reply('超时退出')
+            };
+            function clearMsg() {
+                s.delMsg(pgMsg.getMsgId())
+                if (replyId) s.delMsg(replyId)
+                s.delMsg(loadingId)
+            }
         })
     }
     function search() {

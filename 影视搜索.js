@@ -23,7 +23,7 @@ module.exports = async s => {
         getList(`${domain}home/search/si1_&ky${en_movie_name}.html`).then(async (data) => {
             let replyText = `找到以下资源，请按序号选择：\n如果没有想要的资源输入q/Q退出\n`
             await data.map((item, index) => replyText += `${index + 1}、${item.title}\n`)
-            s.reply(replyText)
+            let replyId = await s.reply(replyText)
             let idxMsg = await s.waitInput(async (sender) => {
                 let content = s.getMsg();
                 if (content == 'q') { }
@@ -39,13 +39,20 @@ module.exports = async s => {
             else {
                 const index = +idxMsg.getMsg();
                 const item = data[index - 1];
-                console.log(`选择的是${item.title}`)
                 let { title, path } = item;
-                getMovieDetail(path).then(async (list) => {
-                    let replyText = `复制链接直接在https://m3u8-player.com/打开即可\n`
-                    await list.map(item => replyText += `${item.title}：${item.href}\n`)
-                    s.reply(replyText)
-                }).catch(err => s.reply(err))
+                getMovieDetail(path)
+                    .then(async (list) => {
+                        let replyText = `复制链接直接在https://m3u8-player.com/打开即可\n`
+                        await list.map(item => replyText += `${item.title}：${item.href}\n`)
+                        console.log(replyText)
+                        s.reply(replyText)
+                    })
+                    .catch(err => s.reply(err))
+                    .finally(async () => {
+                        await sysMethod.sleep(2);
+                        s.delMsg(idxMsg.getMsgId())
+                        s.delMsg(replyId)
+                    })
             }
         }).catch(err => s.reply(err))
     }
@@ -72,7 +79,6 @@ module.exports = async s => {
 
     function getMovieDetail(path) {
         return new Promise((resolve, reject) => {
-            console.log(`详情地址：${domain}${path}`)
             comFn.requestPromise(`${domain}${path}`)
                 .then(resp => {
                     const _html = resp.replace(/\n|\s|\r/g, '')
@@ -80,7 +86,7 @@ module.exports = async s => {
                     let _tbody = _table.match(/<tbody>(\S*?)<\/tbody>/)[0]
                     let _trs = _tbody.match(/<tr>(\S*?)<\/tr>/g).filter(tr => !tr.includes('display: none;'))
                     let resultList = []
-                    if (_trs.length > 100) {
+                    if (_trs.length > 50) {
                         reject(`资源过多，无法显示，播放地址：${domain}${path}`)
                     } else {
                         _trs.map(tr => {

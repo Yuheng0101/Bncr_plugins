@@ -27,7 +27,7 @@ module.exports = async s => {
     // 自定义类型
     const curTypeMap = typeList.find(item => item.title == '丝袜美腿')
     // 自定义分页数量
-    const pageNum = 5
+    const pageNum = 1
     const page = Math.floor(Math.random() * curTypeMap.maxPage)
     const id = curTypeMap.id
     console.log(`当前类型：${curTypeMap.title}，当前页码：${page}`)
@@ -36,34 +36,33 @@ module.exports = async s => {
         getList().then((data) => {
             const { path } = data
             getImg(path).then(async (imgList) => {
-                const { title } = data;
-                s.reply(title)
-                let newList = arr2Dyadic(imgList, pageNum)
-                let isCancel = false;
-                for (let i = 0; i < newList.length; i++) {
-                    if (isCancel) {
-                        s.reply('已取消')
-                        return;
-                    }
-                    if (i == 0) { await newList[i].map(item => sendImage(item)) }
-                    else if (i == newList.length - 1) {
+                if (imgList.length > pageNum) {
+                    let newList = arr2Dyadic(imgList, pageNum)
+                    let i = 0;
+                    while (1) {
+                        async function clearMsg() {
+                            s.delMsg(replyId)
+                            await s.delMsg(input.getMsgId())
+                        }
+                        if (i == newList.length - 1) {
+                            await newList[i].map(item => sendImage(item))
+                            return s.reply(`已加载全部`);
+                        }
                         await newList[i].map(item => sendImage(item))
-                        s.reply(`已加载全部`)
-                        return;
-                    } if (i > 0 && !isCancel) {
-                        s.reply("是否继续返回剩余图片,y/Y继续，其他取消")
+                        let replyId = s.reply("是否继续返回剩余图片,y/Y继续，其他取消")
                         let input = await s.waitInput(() => { }, 30)
                         if (!input) return s.reply("操作超时或取消，已退出。");
                         let content = input.getMsg();
                         if (content.toLowerCase() !== 'y') {
-                            isCancel = true
-                            return s.reply('已取消')
-                        } else {
-                            await newList[i].map(item => sendImage(item))
+                            await clearMsg();
+                            return s.reply('退出成功')
                         }
+                        clearMsg();
+                        i++
                     }
+                } else {
+                    imgList.map(item => sendImage(item))
                 }
-                imgList.map(imgUrl => s.reply({ type: 'image', path: imgUrl }))
             }).catch(err => s.reply(err))
         }).catch(err => s.reply(err))
     }
