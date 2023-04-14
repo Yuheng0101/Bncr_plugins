@@ -17,13 +17,14 @@ module.exports = async s => {
     const getVarType = (o) => (Object.prototype.toString.call(o).match(/\[object (.*?)\]/) || [])[1].toLowerCase();
     let movie_name = s.param(2)
     let en_movie_name = encodeURIComponent(s.param(2).trim())
+    let tipId = null;
     start()
 
     function start() {
         getList(`${domain}home/search/si1_&ky${en_movie_name}.html`).then(async (data) => {
             let replyText = `找到以下资源，请按序号选择：\n如果没有想要的资源输入q/Q退出\n`
             await data.map((item, index) => replyText += `${index + 1}、${item.title}\n`)
-            let replyId = await s.reply(replyText)
+            tipId = await s.reply(replyText)
             let idxMsg = await s.waitInput(async (sender) => {
                 let content = s.getMsg();
                 if (content == 'q') { }
@@ -45,13 +46,13 @@ module.exports = async s => {
                         let replyText = `复制链接直接在https://m3u8-player.com/打开即可\n`
                         await list.map(item => replyText += `${item.title}：${item.href}\n`)
                         console.log(replyText)
-                        s.reply(replyText)
+                        s.reply({ msg: replyText, dontEdit: true })
                     })
                     .catch(err => s.reply(err))
                     .finally(async () => {
                         await sysMethod.sleep(2);
                         s.delMsg(idxMsg.getMsgId())
-                        s.delMsg(replyId)
+                        s.delMsg(tipId)
                     })
             }
         }).catch(err => s.reply(err))

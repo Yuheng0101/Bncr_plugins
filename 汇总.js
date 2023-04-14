@@ -4,7 +4,7 @@
  * @origin onz3v
  * @version 1.0.0
  * @description 汇总一下常用脚本，根据需求自己增删
- * @rule ^(彩虹屁|微博热搜榜|新闻热榜|网易云热评|历史上的今天|笑话|壁纸|每日一图|每日一言|诗词|舔狗日记|汇总菜单)$
+ * @rule ^(彩虹屁|微博热搜榜|新闻热榜|网易云热评|历史上的今天|笑话|壁纸|每日一图|每日一言|诗词|舔狗日记|汇总菜单|买家秀)$
  * @admin false
  * @public true
  * @priority 0
@@ -17,16 +17,17 @@ module.exports = async s => {
         var n = ``;
         n += "----------汇总菜单----------\n";
         var g = ['彩虹屁', '微博热搜榜', '新闻热榜', '网易云热评', '历史上的今天', '笑话', '壁纸', '每日一图', '每日一言', '诗词',
-            '舔狗日记'];
+            '舔狗日记', '买家秀'];
         g.map((item) => { n += item + "\n" });
         n += `------------------------------`;
         s.reply(n)
     } else {
-        s.reply('正在查询中，请稍后...')
+        let loading = await s.reply('正在查询中，请稍后...')
         totalClass();
+        await s.delMsg(loading, { wait: 2 });
     }
-    function sendImage(url) {
-        s.reply({ type: 'image', path: url })
+    function sendImage(url, msg = "") {
+        s.reply({ type: 'image', path: url, msg })
     }
     async function totalClass() {
         switch (input) {
@@ -65,6 +66,10 @@ module.exports = async s => {
                 break;
             case '每日一图':
                 sendImage(await comFn._request({ url: 'http://xiaobai.klizi.cn/API/other/bing.php' }))
+                break;
+            case '买家秀':
+                const { title, pic } = JSON.parse(await comFn._request({ url: 'https://api.vvhan.com/api/tao?type=json' }));
+                sendImage(pic, title)
                 break;
         }
     }
