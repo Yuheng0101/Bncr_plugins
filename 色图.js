@@ -2,17 +2,20 @@
  * @author Yuheng | onz3v
  * @name 155色图
  * @origin onz3v
- * @version 1.0.0
+ * @version 1.0.1
+ * @update 修复一些BUG
  * @description 一次不使用cheerio对学习资料的爬虫尝试 18+ 请勿滥用
  * @rule ^(mm|色图)$
- * @admin false
+ * @admin true
  * @public true
  * @priority 0
  * @disable false
  */
 
+const request = require('request')
+const iconv = require('iconv-lite')
+
 module.exports = async s => {
-    const comFn = require('./lib/functions')
     const domain = `http://155zy.com`
     const typeList = [
         { title: '街拍偷拍', id: 25, maxPage: 29 },
@@ -27,7 +30,7 @@ module.exports = async s => {
     // 自定义类型
     const curTypeMap = typeList.find(item => item.title == '丝袜美腿')
     // 自定义分页数量
-    const pageNum = 1
+    const pageNum = 5
     const page = Math.floor(Math.random() * curTypeMap.maxPage)
     const id = curTypeMap.id
     console.log(`当前类型：${curTypeMap.title}，当前页码：${page}`)
@@ -68,8 +71,9 @@ module.exports = async s => {
     }
     function getList() {
         let url = `${domain}/index.php/art/type/id/${id}/page/${page}.html`
+        console.log(url)
         return new Promise((resolve, reject) => {
-            comFn.requestPromise(url)
+            request4Sp(url)
                 .then(resp => {
                     const _html = resp.replace(/\n|\s|\r/g, '')
                     const _body = _html.match(/<ulclass=\"videoContent\">(\S*?)<\/ul>/g)[0]
@@ -95,8 +99,9 @@ module.exports = async s => {
     }
 
     function getImg(path) {
+        console.log(`${domain}${path}`)
         return new Promise((resolve, reject) => {
-            comFn.requestPromise(`${domain}${path}`)
+            request4Sp(`${domain}${path}`)
                 .then(resp => {
                     const _html = resp.replace(/\n|\s|\r/g, '')
                     const _body = _html.match(/<divclass=\"f14\"id=\"read_tpc\">(\S*?)<\/div>/g)[0]
@@ -125,6 +130,26 @@ module.exports = async s => {
             newArr.push(chunk);
         }
         return newArr;
+    }
+    function request4Sp(url) {
+        return new Promise((resolve, reject) => {
+            request(
+                url,
+                {
+                    encoding: null, strictSSL: false, headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
+                    }
+                },
+                (error, res, body) => {
+                    if (res.statusCode === 200) {
+                        const html = iconv.decode(body, 'utf-8')
+                        resolve(html)
+                    } else {
+                        reject(error)
+                    }
+                }
+            )
+        })
     }
 };
 
