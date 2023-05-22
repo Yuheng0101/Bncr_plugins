@@ -15,7 +15,7 @@
  * @disable false
  */
 
-sysMethod.testModule(['request'], { install: true });
+sysMethod.testModule(['axios'], { install: true });
 sysMethod.testModule(['cheerio'], { install: true });
 const axios = require('axios');
 const cheerio = require('cheerio');
