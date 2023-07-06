@@ -12,7 +12,7 @@
  */
 const comFn = require('./lib/functions')
 const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-const domain = "https://yj2212.com/";
+const domain = "https://z227m.com/";
 const typeList = [{ "name": "丝袜", "id": "21" }]; // 这里自己选择
 // const data = [{ "name": "街拍", "id": "49" },{ "name": "写真", "id": "14" }, { "name": "自拍", "id": "15" }, { "name": "露出", "id": "16" }, { "name": "街拍", "id": "49" }, { "name": "丝袜", "id": "21" }, { "name": "欧美", "id": "114" },];
 let id = typeList[random(0, typeList.length - 1)]['id'], pg = random(0, 10), pageNum = 1; // 分页数量
