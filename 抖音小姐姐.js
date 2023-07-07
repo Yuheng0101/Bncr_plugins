@@ -1,58 +1,17 @@
 /**
- * @author Yuheng | onz3v
+ * @author 𝒀𝒖𝒉𝒆𝒏𝒈
  * @name 抖音小姐姐
- * @origin onz3v
- * @version 1.0.1
+ * @origin https://xjj.pw/xiaojiejie/
+ * @version 1.0.2
  * @description 正规军
  * @rule ^(小姐姐|xjj)$
- * @admin true
+ * @admin false
  * @public true
  * @priority 999
  * @disable false
  */
+sysMethod.testModule(['axios'], { install: true });
+const axios = require('axios')
 module.exports = async s => {
-    const axios = require('axios');
-    const instance = axios.create({
-        timeout: 100000,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/ 5.0(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari / 537.36'
-        }
-    });
-    const getVideoId = async () => {
-        const res = await get('https://gitee.com/au_2023/codes/nxe5yoirc9l8s70dzvawh50/raw?blob_name=JoyfulList');
-        const random = Math.floor(Math.random() * res.length);
-        return res[random];
-    }
-    const getVideo = async () => {
-        const id = await getVideoId();
-        const playUrl = await getRedirect(`https://aweme.snssdk.com/aweme/v1/play/?video_id=${id}`);
-        s.reply({
-            type: 'video',
-            msg: '',
-            path: playUrl
-        })
-    }
-    getVideo();
-    function getRedirect(url) {
-        return new Promise((resolve, reject) => {
-            instance.get(url, { maxRedirects: 0 }).catch(err => {
-                const statusCode = err.response.status;
-                if (statusCode == 302) {
-                    resolve(err.response.headers.location)
-                } else {
-                    reject(err)
-                }
-            })
-        })
-    }
-    function get(url) {
-        return new Promise((resolve, reject) => {
-            instance.get(url).then(res => {
-                resolve(res.data)
-            }).catch(err => {
-                reject(err)
-            })
-        })
-    }
+    /** Code Encryption Block[419fd178b7a37c9eae7b7426c4a04203f7ee9563c6b9bc3978d3e1445f2041084a1b1f636dbdbd7e94c0e6e858a697934ff91aa35a4ddafc6438edb0c5293e675ae77cc152ea96ac0ecc329d0818cfc728db1e5f62ca0f74217d38f208607e1b5858729a1570f5b941d37e256aa65f603e2847daa5f101a784f536d451a149aaf441292d9a877690e96698c58a8b26b2b0ab4e427e76b9b5c5027e4f1ee11715162f148a134ad8c4322c9b172cd5c1490983ef7cff98a6eeddb603dd0b51ffc76ba415085d10d7a9a63db6070387fafcbc0dde83893117ec3657509fb08fe9d29fb768e5d7acb95985c7bcf3ad7bb8fa3c17dbe2934629030fd5b610d4c750a2534af9e931a42109211c6844b214efee2605aaf19b9854c6cfebd9dc4b6124dea2d9c108aea76769ae46520f3f910945c654449d80156b4af83c021ecf257823ffd38dc035a5c4c5496103b21070d6cfa28207d5228a94d443377f68ba179927e94f435ef3bc43d1a3142827c7880ad9e2c450bc1e3cbf4362dd625965148f9d9de029de95a880f8823037c959316e63b16e7e30632f4f45b2d506a666f4001fbb381524756beac9535d4900861ff43a01ecc001ae0ffb5b8b8e883eb252b22f73e62515a056183b6aa57bfc6b59d6e4fbba4e9f98f332a0e05550ab31d3639dd124e50f6cc37452bb3fd1d443d2a2383b4a68de830229dc94999986b0bae4f7aa75885a115a3bec71cd2afb674ed81b84e3cdd0ac4f98acf6503968bc08e2c44bc3485fdd8c851e077b5237034d4b96f1275377ab98f443109b0408b5a5561c7638b00fb05786d7efa85cee8df391bad11a90b250ec269bc28a8bdc3b7e3f40a42fc4fa863a550eecbe454e6be992d8d5c4dec5e3880dd7de9a86159b25a5249b2d6f89cf6d34414f423f9daac8929391f5fdcc90b4ea8da90b55544a86633acd461628d928da934867fdc1d330952387b8585d17d85d4213b5ce973c79264931580e5d76a7fd70d4b50d6ae50677c6eed1ae777df381f3ae3178c36312372ebbcb9d9e9b6e82103805bb4dc68106c40938c2388034385acfbe3527c05df4f98c33490b89911ce6f74c6515736746ad14b417b25dbbf8d019eeef1bfc0f479a69152eff597727d41eb5863bd8d8856940731a2d1e500e5088e587e83f5d4569a801550fd02bbe590300b182f389978a608d7da610b05117a5b8efd30486d1f136e1e6bc15dd20f2928f245b1ce5b22f8b5b564c7e9264b6b6fc76b46b4fb48330c0bb09d460da4bd1e69e26d0cbab479e825ec6d3b2c91f9f073cf687bd61765e68d6308fa95882d642ebdc06f14fdd1853d016e525a2050f02be2d2386593325c0f6dca0a7e524750e542b7e8cf40cab320a42c0b5751b5cb316c7c9a53b110cc3a848d92316452718e47e3405a218ad43bde646ce200627ccbe5a178bc0db5ec53e151866e1c7a38d2ba6ff00ff6afa3a157a4d201be52d0f6a81569c00f6512e1f885beefd940aa1f49bfd15da0080d33d5557cbdb8eafbfc2be17fdd287884f72ebc31f44b63ce7abca9bbaa36626cee34eac13ddf79815110ee5a87d9e] */
 }
