@@ -1,13 +1,13 @@
 /**
- * @author yuheng
+ * @author 𝒀𝒖𝒉𝒆𝒏𝒈
  * @name 番号搜索
- * @origin yuheng
- * @version 1.0.0
- * @description 对 https://javlist.me 的爬取学习
+ * @origin https://javlist.me/
+ * @version 1.0.2
+ * @description 无需多言
  * @rule ^(fh|番号)([\s\S]+)$
  * @admin true
  * @public true
- * @priority 99999
+ * @priority 999
  * @disable false
  */
 const scriptName = 'MYAV番号';
@@ -16,8 +16,9 @@ module.exports = async s => {
     const $ = new Env(scriptName);
     const domain = `https://javlist.me`;
     !(async () => {
+        let { code, hash } = await getParams();
         const searchVal = s.param(2)?.trim();
-        const list = await search(searchVal);
+        const list = await search(searchVal, code, hash);
         let replyText = list.map((item, index) => `【${index + 1}】.${item.title}`).join('\n');
         replyText += '\n\n回复对应数字获取番号磁链接';
         const reply = await s.reply(replyText);
@@ -44,8 +45,21 @@ module.exports = async s => {
             s.reply(err)
         })
         .finally(() => $.done());
-    function search(val) {
-        const url = `${domain}/search.php?s=${val}&code=3372636995&hash=e2283703fb9b90ddb50b62681679f479&cat=1`
+    function getParams() {
+        return new Promise((resolve, reject) => {
+            $.http.get(domain)
+                .then(({ body: html }) => {
+                    const _$ = cheerio.load(html);
+                    const code = _$('input[name=code]').val();
+                    const hash = _$('input[name=hash]').val();
+                    $.log(`code:${code},hash:${hash}`)
+                    resolve({ code, hash });
+                })
+                .catch(err => reject(err))
+        })
+    }
+    function search(val, code, hash) {
+        const url = `${domain}/search.php?s=${val}&code=${code}&hash=${hash}&cat=1`
         return new Promise((resolve, reject) => {
             $.http.get(url)
                 .then(({ body: html }) => {
@@ -70,7 +84,7 @@ module.exports = async s => {
                     const magnetList = _$('#Magnet_link [id^=magnet_]').map((_, item) => {
                         const $item = _$(item);
                         const title = $item.text();
-                        /** Code Encryption Block[f5ce8b1d1d171bf6c4af4f6ff3238aaaa9aa63f8be80535f2a54fdef9aa9320ae7f8491c63f9b49e38be2499323dcea0a55e98021de1c581418691ef8f0df54253d768bf1bb4cc54b633ca32dd5373d013c530acc4eb8326e39254f7653301197922acf2cbda82c9893043a473d7e0e5] */
+                        /* HideStart */const link = base64Decode(base64Decode(base64Decode($item.attr('href'))));/* HideEnd */
                         return { title, link }
                     }).get();
                     if (!magnetList.length) return reject('未找到磁链接');
@@ -81,7 +95,41 @@ module.exports = async s => {
                 .catch(err => reject(err))
         })
     }
-    /** Code Encryption Block[419fd178b7a37c9eae7b7426c4a04203df62e54945024d2a6614f6d7b90b3b1e077921aff2b89fa869a74002537f68a50850cd2a8dc50c2076e57d6a07827a0f5d0fe1d9c88158427049c96ee24c295b0420b0d5f080eacb7a341fd0ac0ff19189e4e911b5433f410f9bc54f62a7cbc15a43d796bfb8c09ee0a0f2ac1cd156f5b69cb3f728ba73b3b050f105bc20d4e872e08f2db2431c6eea098a9ca923e6f32ec429f5dcc0b20306964605e1374d78bd0f59e1d98181b14115d06db85f18e1d28424e5411c1730e8b48d4e9d4f12222ebb7a5f24bca0f3a128a47b23e03d2962a1debdcab27934aa42a78efeeb12fa0471d132b6c32253a6f7cb63c6f76f5baa78a768efda3463223c836c0e37d7dd8265781e0977cb33c5b58ca288244461d5f5da5c08d53b6b49f1f37983cd5c72b756c2407c00a07005da391e76ce7f30e6b2a5b6a9f648e3856f7c2029c4ca3b0086171427dc0e9272eb2a6f71811187deccdd27a8dc4578909efde8a55d52220262ce3a4435862b04d321a891bd498b8aed123190dbddbd9ce25b70dd2c492688d3212ac0c1053bf60a2da3b78bbcc91fa57dd4587dd922155012abe0eb5f23668a589a5543c1cd1dd9991339336a32a0c7b7c485a9e90d9d532d0337660a34b930838e65d2f6df41baab860dc7a6a5e7f7d621b769b3bca6afdc9211542580426ab1574f6cb4eb7c7f220ea111ff8822e604ac23dd494cf1c508f01270cdcb79c499700870cd54b110118d0f0c5ca5715750af4d9a76e7f13305939952ba2431279547ffe393dd124a52e7c007be9b78085aef54a074b0d4bcede0df6315e8cd1813dc05d1d63f69ea330922ec60baa2da734131002fe27a9e879a8a54a5971d91625940ba83e06b5417303de95bdaf35954024a5dcd3ae8d2b2af2de762d587cb9bffc3bb1ebbe47885a5b39211702e78b7536e8ddf1b1c0856f836c61648519a062d3f78098a7c860a98610ba4ecd86e681498ba3560a2910297afcbe5930a163ddfcc3c8705dd133e8bf89c1ee7b4dbfae37509607f7164dc14049638eaa285163876c80afeadaf7b011bdb3e045c919c2bae86be45b487bbba0fbaeb7c00edcd0792fdc5c589bd1c981841c75d44a531c49a1db2e35cb302dd23a337ccf16c15371db5618d37ed7109ca6ee0dd7012c5a91da8a350e8de1ca5d76543ac30df32ed9eb260b1b4c3e8cf6e8f18a4a4487d91e952b3fe72a3076cc68562c595ccccca602e434c411a9f3e06dad999d14240ab5fb79ec4fa01b9567acd3799243e90657c366f8965ea4663b67680065fcc5c223a513eceb32e5ac3e7af169c6c495906a933b0c36cdab5c716c466b590fc01b1e344478badb50f5556de6d9119fd98f5191aa57e54604993fda6a6ae29e6115143b031d122e1cb21563340508c9fd083df89581e0ab55d0a35d544ca76de36251f4b882fd4e9465bb688626d961500fef88b81c33a62aa06a893c154e9b73b583ad88e2103f93ac7d1c8dfd7c2ce20f7153cdeca4e575d387f8ab37652e09f6fde4ee0bd43f053f648d1ea6ea1ce512f013f6f11b5eb04c9db4a287810e1b51a365e82295fec735837cd0c7dda7b798ffaf804c8847fc4856f254858c6bf5b783cbc916e2233fb4125007875912f10e40624e8100a989b27933125a502240790122c9853a8b701e9b5bb1fdc6ecc0e3521b03590fc9426f2bad2feaeb250b29883c88a9d5f094aae88ad02e5] */
+    /* HideStart */
+    function base64Decode(input) {
+        input = String(input)
+            .replace(/[\t\n\f\r ]/g, '');
+        var length = input.length;
+        if (length % 4 == 0) {
+            input = input.replace(/==?$/, '');
+            length = input.length;
+        }
+        if (
+            length % 4 == 1 ||
+            // http://whatwg.org/C#alphanumeric-ascii-characters
+            /[^+a-zA-Z0-9/]/.test(input)
+        ) {
+            return false;
+        }
+        var bitCounter = 0;
+        var bitStorage;
+        var buffer;
+        var output = '';
+        var position = -1;
+        while (++position < length) {
+            buffer = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'.indexOf(input.charAt(position));
+            bitStorage = bitCounter % 4 ? bitStorage * 64 + buffer : buffer;
+            // Unless this is the first of a group of 4 characters…
+            if (bitCounter++ % 4) {
+                // …convert the first 8 bits to a single ASCII character.
+                output += String.fromCharCode(
+                    0xFF & bitStorage >> (-2 * bitCounter & 6)
+                );
+            }
+        }
+        return output;
+    }
+    /* HideEnd */
 };
 
 function Env(name, opts) {
